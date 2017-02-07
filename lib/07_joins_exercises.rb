@@ -40,6 +40,14 @@ end
 def ford_films
   # List the films in which 'Harrison Ford' has appeared.
   execute(<<-SQL)
+  SELECT title
+  FROM movies
+  JOIN castings
+    ON movies.id = movie_id
+  JOIN actors
+    ON actor_id = actors.id
+  WHERE
+    name LIKE 'Harrison Ford';
   SQL
 end
 
@@ -48,12 +56,28 @@ def ford_supporting_films
   # role. [Note: the ord field of casting gives the position of the actor. If
   # ord=1 then this actor is in the starring role]
   execute(<<-SQL)
+  SELECT title
+  FROM movies
+  JOIN castings
+    ON movies.id = movie_id
+  JOIN actors
+    ON actor_id = actors.id
+  WHERE
+    ord > 1 AND name LIKE 'Harrison Ford'
   SQL
 end
 
 def films_and_stars_from_sixty_two
   # List the title and leading star of every 1962 film.
   execute(<<-SQL)
+  SELECT
+    title, name
+  FROM movies
+  JOIN castings
+    ON movies.id = movie_id
+  JOIN actors
+    ON actor_id = actors.id
+  WHERE ord = 1 AND yr = 1962
   SQL
 end
 
@@ -61,13 +85,82 @@ def travoltas_busiest_years
   # Which were the busiest years for 'John Travolta'? Show the year and the
   # number of movies he made for any year in which he made at least 2 movies.
   execute(<<-SQL)
+  SELECT
+    yr, COUNT(title)
+  FROM movies
+  JOIN castings
+    ON movies.id = movie_id
+  JOIN actors
+    ON actor_id = actors.id
+  GROUP BY
+    yr, actors.name
+  HAVING
+    COUNT(title) >= 2 AND actors.name LIKE 'John Travolta'
+
   SQL
 end
 
 def andrews_films_and_leads
   # List the film title and the leading actor for all of the films 'Julie
   # Andrews' played in.
+
+  # SELECT title
+  # FROM movies
+  # JOIN castings
+  #   ON movies.id = movie_id
+  # JOIN actors
+  #   ON actor_id = actors.id
+  # WHERE
+  #   ord > 1 AND name LIKE 'Harrison Ford'
+
+  #
+  # execute(<<-SQL)
+  # SELECT
+  #   title, name
+  # FROM movies
+  # JOIN castings
+  #   ON movies.id = movie_id
+  # JOIN actors
+  #   ON actor_id = actors.id
+  # WHERE
+  #   title IN (
+  #    SELECT
+  #     title
+  #   FROM movies
+  #   JOIN castings
+  #     ON movies.id = movie_id
+  #   JOIN actors
+  #     ON actor_id = actors.id
+  #   WHERE
+  #     name LIKE 'Julie Andrews'
+  #   ) AND
+  #
+  #   ord = 1
+  # SQL
+
   execute(<<-SQL)
+  SELECT
+    title, name
+  FROM movies
+  JOIN castings
+    ON movies.id = movie_id
+  JOIN actors
+    ON actor_id = actors.id
+  WHERE
+  title IN (
+    SELECT
+      title
+    FROM
+      movies
+    JOIN castings
+    ON movies.id = movie_id
+    JOIN actors
+    ON actor_id = actors.id
+    WHERE
+      name LIKE 'Julie Andrews'
+  ) AND
+
+  ord = 1;
   SQL
 end
 
@@ -75,6 +168,28 @@ def prolific_actors
   # Obtain a list in alphabetical order of actors who've had at least 15
   # starring roles.
   execute(<<-SQL)
+  SELECT DISTINCT name
+  FROM movies
+  JOIN castings
+    ON movies.id = movie_id
+  JOIN actors
+    ON actor_id = actors.id
+  WHERE
+    name IN (
+      SELECT name
+      FROM movies
+      JOIN castings
+        ON movies.id = movie_id
+      JOIN actors
+        ON actor_id = actors.id
+      GROUP BY name, castings.ord
+      HAVING
+        COUNT(ord = 1) >= 15
+    )
+
+  ORDER BY
+    name ASC
+
   SQL
 end
 

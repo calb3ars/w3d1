@@ -108,6 +108,6 @@ def populous_continents
       continent
     HAVING
       SUM(population) > 100000000
-  ) AS populous_continents
+  ) AS populous_continents AND name LIKE 'John Travolta'
   SQL
 end
